@@ -21,7 +21,7 @@ function calculateOddsToProfit(outcomes, casePrice) {
 
 function getAllOutcomes() {
     const caseItemListElement = document.querySelector('.skins-list.items-list')
-    const outcomes = caseItemListElement.querySelectorAll('.pf-table-row-link');
+    const outcomes = caseItemListElement.querySelectorAll('.pf-table-row:not(.pf-table-row.head)');
 
     let result = [];
 
