@@ -4,7 +4,7 @@ function calculateAverageValue(outcomes) {
         totalValue += item.value;
     }
 
-    return totalValue; // Adjust the multiplier as needed
+    return totalValue;
 }
 
 function calculateOddsToProfit(outcomes, casePrice) {
@@ -15,7 +15,7 @@ function calculateOddsToProfit(outcomes, casePrice) {
         }
     }
 
-    return oddsToProfit; // Adjust the multiplier as needed
+    return oddsToProfit;
 }
 
 
@@ -23,34 +23,34 @@ function getAllOutcomes() {
     const caseItemListElement = document.querySelector('.skins-list.items-list')
     const outcomes = caseItemListElement.querySelectorAll('.pf-table-row-link');
 
-    // Replace this with your logic to calculate the percentage based on the provided caseItems elements.
-    // You can iterate through the elements, extract relevant data, and perform calculations to determine the percentage.
     let result = [];
 
     outcomes.forEach(outcome => {
-        // console.log(outcome)
         const chanceElement = outcome.querySelector('.table-cell.odds');
-        // console.log(chanceElement)
-
         const chanceText = chanceElement.textContent.trim();
         // Extract the numerical value from the chance text (replace as needed)
         let chance = parseFloat(chanceText.replace(/%$/, "")); // Assuming chance is a percentage
-        // console.log("chance: " + chance)
-
 
         const priceElement = outcome.querySelector('.price');
         const priceText = priceElement.textContent.trim();
         let price = parseFloat(priceText.replace(/^\$|\s*$/, "")); // Assuming price has a leading '$' and removes trailing whitespace
-        // console.log("price: " + price)
 
         let value = chance * price;
-        // console.log(value)
 
         result.push({ "chance": chance, "price": price, "value": value })
     });
 
-    // Example placeholder calculation (assuming you want the count of caseItems as the percentage)
-    return result; // Adjust the multiplier as needed
+    return result;
+}
+
+function createCaseStatElement() {
+    const element = document.createElement('button');
+    element.className = "counter"
+    element.setAttribute('data-v-710164b2', '');
+    element.style.width = 'auto';
+    element.style.padding = '10px';
+    element.style.pointerEvents = 'none';
+    return element;
 }
 
 
@@ -75,71 +75,59 @@ function injectHTML() {
     // Find the element to inject the percentage
     const openButtonsWrapper = document.querySelector('.open-buttons-wrapper');
 
-    if (openButtonsWrapper) {
-        const wrapper = document.createElement('div');
-        wrapper.setAttribute('data-v-710164b2', '');
-        wrapper.className = "case-multiple-switcher"
-        openButtonsWrapper.appendChild(wrapper);
-
-        const avgReturnElement = document.createElement('button');
-        avgReturnElement.className = "counter"
-        avgReturnElement.setAttribute('data-v-710164b2', '');
-        avgReturnElement.textContent = `AVG RETURN: $${(averageValue / 100).toFixed(2)}`;
-        avgReturnElement.style.width = 'auto';
-        avgReturnElement.style.padding = '10px';
-        avgReturnElement.style.pointerEvents = 'none';
-        wrapper.appendChild(avgReturnElement);
-
-        const percentageElement = document.createElement('button');
-        percentageElement.className = "counter"
-        percentageElement.setAttribute('data-v-710164b2', '');
-        percentageElement.textContent = `PROFITABILITY: ${profitability.toFixed(2)}%`;
-        percentageElement.style.width = 'auto';
-        percentageElement.style.padding = '10px';
-        percentageElement.style.pointerEvents = 'none';
-        wrapper.appendChild(percentageElement);
-
-        const oddsToProfitElement = document.createElement('button');
-        oddsToProfitElement.className = "counter"
-        oddsToProfitElement.setAttribute('data-v-710164b2', '');
-        oddsToProfitElement.textContent = `ODDS TO PROFIT: ${oddsToProfit.toFixed(2)}%`;
-        oddsToProfitElement.style.width = 'auto';
-        oddsToProfitElement.style.padding = '10px';
-        oddsToProfitElement.style.pointerEvents = 'none';
-        wrapper.appendChild(oddsToProfitElement);
-    } else {
+    if (!openButtonsWrapper) {
         console.warn("Element with class 'open-buttons-wrapper' not found");
+        return;
     }
+
+    const wrapper = document.createElement('div');
+    wrapper.setAttribute('data-v-710164b2', '');
+    wrapper.className = "case-multiple-switcher"
+    openButtonsWrapper.appendChild(wrapper);
+
+    const avgReturnElement = createCaseStatElement();
+    avgReturnElement.textContent = `AVG RETURN: $${(averageValue / 100).toFixed(2)}`;
+    wrapper.appendChild(avgReturnElement);
+
+    const percentageElement = createCaseStatElement();
+    percentageElement.textContent = `PROFITABILITY: ${profitability.toFixed(2)}%`;
+    wrapper.appendChild(percentageElement);
+
+    const oddsToProfitElement = createCaseStatElement();
+    oddsToProfitElement.textContent = `ODDS TO PROFIT: ${oddsToProfit.toFixed(2)}%`;
+    wrapper.appendChild(oddsToProfitElement);
+
 }
 
 
 const casesObserver = new MutationObserver(function (mutations, mutationInstance) {
     const caseItemListElement = document.querySelector('.skins-list.items-list')
     const someDiv = document.querySelectorAll('[data-qa="sticker_case_price_element"]');
-    // if (!document.documentElement.dataset.scriptExecuted && someDiv && caseItemListElement) {
-    //     injectHTML();
-    // mutationInstance.disconnect();
-    //     document.documentElement.dataset.scriptExecuted = true; // execute only once
-    // }
     if (someDiv && caseItemListElement) {
         injectHTML();
         mutationInstance.disconnect();
     }
 });
 
-casesObserver.observe(document, {
-    childList: true,
-    subtree: true
-});
+function observeCases() {
+    // only observe when on cases page
+    if (!window.location.href.includes('/cases/')) {
+        return;
+    }
+
+    casesObserver.observe(document, {
+        childList: true,
+        subtree: true
+    });
+}
 
 // observe again when page is changed
 chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
         // listen for messages sent from background.js
         if (request.message === 'pageChanged') {
-            casesObserver.observe(document, {
-                childList: true,
-                subtree: true
-            });
+            observeCases();
         }
     });
+
+    observeCases();

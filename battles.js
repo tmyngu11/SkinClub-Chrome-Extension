@@ -1,4 +1,4 @@
-window.calculateBattleWinnings = function() {
+window.calculateBattleWinnings = function () {
     const battleSlots = document.querySelectorAll('.battle-slot');
     let values = []
     battleSlots.forEach(battleSlot => {
@@ -8,7 +8,7 @@ window.calculateBattleWinnings = function() {
     })
 
     const teamBattle = document.querySelector(".battle-teams")
-    if (teamBattle){
+    if (teamBattle) {
         const teams = teamBattle.querySelectorAll(".battle-teams__team")
         const ct = teams[0]
         injectTeamBattleValue(ct, values[0] + values[1])
@@ -31,15 +31,20 @@ function getBattleSlotValue(battleSlot) {
     return totalValue;
 }
 
-function injectTeamBattleValue(team, value){
+function createBattleStatElement() {
+    let element = document.createElement('div');
+    element.className = "counter"
+    element.setAttribute('data-v-710164b2', '');
+    element.style.width = 'auto';
+    element.style.padding = '10px';
+    element.style.pointerEvents = 'none';
+    return element;
+}
+
+function injectTeamBattleValue(team, value) {
     let element = team.querySelector('.counter');
     if (!element) {
-        element = document.createElement('div');
-        element.className = "counter"
-        element.setAttribute('data-v-710164b2', '');
-        element.style.width = 'auto';
-        element.style.padding = '10px';
-        element.style.pointerEvents = 'none';
+        element = createBattleStatElement();
 
         team.appendChild(element);
     }
@@ -50,12 +55,7 @@ function injectTeamBattleValue(team, value){
 function injectBattleSlotValue(battleSlot, value) {
     let element = battleSlot.querySelector('.counter');
     if (!element) {
-        element = document.createElement('div');
-        element.className = "counter"
-        element.setAttribute('data-v-710164b2', '');
-        element.style.width = 'auto';
-        element.style.padding = '10px';
-        element.style.pointerEvents = 'none';
+        element = createBattleStatElement();
 
         battleSlot.insertBefore(element, battleSlot.firstChild);
     }
@@ -70,7 +70,7 @@ const battlesObserver = new MutationObserver(function (mutations, mutationInstan
         calculateBattleWinnings();
         mutationInstance.disconnect();
 
-
+        // listen and update when the battle inventory is updated
         const battleSlots = document.querySelectorAll('.battle-slot-inventory');
         const newObserver = new MutationObserver(function (mutations, newMutationInstance) {
             calculateBattleWinnings();
@@ -84,20 +84,25 @@ const battlesObserver = new MutationObserver(function (mutations, mutationInstan
 });
 
 
-battlesObserver.observe(document, {
-    childList: true,
-    subtree: true
-});
+function observeBattles() {
+    // only observe when on cases page
+    if (!window.location.href.includes('/battles/')) {
+        return;
+    }
 
+    battlesObserver.observe(document, {
+        childList: true,
+        subtree: true
+    });
+}
 
 // observe again when page is changed
 chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
         // listen for messages sent from background.js
         if (request.message === 'pageChanged') {
-            battlesObserver.observe(document, {
-                childList: true,
-                subtree: true
-            });
+            observeBattles();
         }
     });
+
+observeBattles();
