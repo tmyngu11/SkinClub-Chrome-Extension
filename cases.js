@@ -80,7 +80,14 @@ function injectHTML() {
         return;
     }
 
+    // deduplicate the stats
+    let oldWrapper = document.getElementById('helper-wrapper');
+    if (oldWrapper) {
+        openButtonsWrapper.removeChild(oldWrapper);
+    }
+
     const wrapper = document.createElement('div');
+    wrapper.id = "helper-wrapper";
     wrapper.setAttribute('data-v-710164b2', '');
     wrapper.className = "case-multiple-switcher"
     openButtonsWrapper.appendChild(wrapper);
@@ -130,4 +137,4 @@ chrome.runtime.onMessage.addListener(
         }
     });
 
-    observeCases();
+observeCases();
